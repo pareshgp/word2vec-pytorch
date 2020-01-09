@@ -1,14 +1,14 @@
 import torch
+
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
 from word2vec.data_reader import DataReader, Word2vecDataset
 from word2vec.model import SkipGramModel
 
 
 class Word2VecTrainer:
-    def __init__(self, input_file, output_file, emb_dimension=100, batch_size=32, window_size=5, iterations=3,
+    def __init__(self, input_file, output_file, emb_dimension=10, batch_size=32, window_size=5, iterations=3,
                  initial_lr=0.001, min_count=12):
 
         self.data = DataReader(input_file, min_count)
@@ -45,16 +45,16 @@ class Word2VecTrainer:
                     pos_v = sample_batched[1].to(self.device)
                     neg_v = sample_batched[2].to(self.device)
 
-                    scheduler.step()
                     optimizer.zero_grad()
                     loss = self.skip_gram_model.forward(pos_u, pos_v, neg_v)
                     loss.backward()
                     optimizer.step()
+                    scheduler.step()
 
                     running_loss = running_loss * 0.9 + loss.item() * 0.1
-                    if i > 0 and i % 500 == 0:
-                        print(" Loss: " + str(running_loss))
+                    #if i > 0 and i % 500 == 0:
 
+            print(" Loss: " + str(running_loss))
             self.skip_gram_model.save_embedding(self.data.id2word, self.output_file_name)
 
 
